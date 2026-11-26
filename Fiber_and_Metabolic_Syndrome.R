@@ -11,7 +11,7 @@ pacman::p_load(
   tidyverse
 )
 
-# What is this project is and how to run it ----
+# What is this project ----
 # Replication of: Association of dietary fiber intake with all-cause and cardiovascular mortality in U.S. adults with metabolic syndrome: NHANES 1999–2018
 # https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1659000/full
 
@@ -27,10 +27,8 @@ pacman::p_load(
 # education = DMDEDUC2 (age 20+) (What is the highest grade or level of school {you have/SP has} completed or the highest degree {you have/s/he has} received?)
 demo <- nhanes("DEMO_J")
 
-
 # *** Dietary Interview - Total Nutrient Intakes, Day 1  ***
 diet <- nhanes("DR1TOT_J") # dietary_fiber_grams = DR1TFIBE
-
 
 # *** Examination Data - Blood Pressure and Body Measures ***
 bpx  <- nhanes("BPX_J")     # systolic_BP ((1st rdg) mm Hg) = BPXSY1; Diastolic ((1st rdg) mm Hg) = BPXDI1
@@ -59,7 +57,6 @@ nhanesMerged <- demo |>
   full_join(trig, by = "SEQN") |>
   full_join(bpq,  by = "SEQN")
 
-
 # Select and rename columns
 nhanes_simple <- nhanesMerged |> 
   select(
@@ -82,27 +79,7 @@ nhanes_simple <- nhanesMerged |>
 
 nhanes_simple |> head()
 
-
-
 # Selection criteria ----
-# nhanes_simple <- nhanes_simple |> # turns all sex to NA's
-#  mutate(sex = factor(sex, levels = c(1, 2), labels = c("Male", "Female")))
-
-# Filtering Data based on Adult Treatment Panel III (ATP III) of MetS
-
-#Participants were eligible if they were adults (age ≥18 years) and
-#met the criteria for metabolic syndrome at baseline. Metabolic
-#syndrome was defined according to the National Cholesterol
-#education Program Adult Treatment Panel III (ATP III) definition (4),
-#requiring at least three of the following: 
-
-#We identified 101,316 participants with MetS at
-#baseline across the survey cycles. We further excluded individuals
-#with missing dietary data or implausible energy intake, and those with
-#missing mortality information. The final analytic sample comprised
-#10,962 adults with metabolic syndrome
-
-
 # based on the Adult Treatment Panel III (ATP III) of metabolic syndrome (MetS)
 # Index: https://www.ahajournals.org/doi/10.1161/circulationaha.105.169404
 
