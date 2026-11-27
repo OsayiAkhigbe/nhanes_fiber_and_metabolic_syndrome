@@ -65,30 +65,6 @@ trig <- data_grab("trig", "TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not n
 # Questionnaire Data - Blood Pressure & Cholesterol
 bpq <- data_grab("bpq", "BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
 
-if(file.exists(here(".data_sets/demo.rds"))){  
-  demo <- readRDS(here(".data_sets/demo.rds"))  # if data exist, load and pass into object.
-} else {
-  demo <- nhanes("DEMO_J")                      # Download data and pass into object
-  demo |> saveRDS(here(".data_sets/demo.rds"))  # Save object to disk in hidden folder
-}                      
-
-# Dietary Interview - Total Nutrient Intakes, Day 1
-diet <- nhanes("DR1TOT_J") # dietary_fiber (g/day) = DR1TFIBE
-
-# Examination Data - Blood Pressure and Body Measures
-bpx  <- nhanes("BPX_J")     # systolic_BP ((1st rdg) mm Hg) = BPXSY1; Diastolic ((1st rdg) mm Hg) = BPXDI1
-bmx  <- nhanes("BMX_J")     # waist_circumference (cm) = BMXWAIST
-
-# Laboratory Data - Plasma Fasting glucose, HDL and triglycerides
-glu  <- nhanes("GLU_J")     # glucose (mg/dL) = LBXGLU 
-hdl  <- nhanes("HDL_J")     # hdl_cholesterol (mg/dL) = LBDHDD 
-trig <- nhanes("TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not needed for MetS)
-
-# Questionnaire Data - Blood Pressure & Cholesterol
-bpq <- nhanes("BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
-
-
-
 # *** 
 # Mortality: all-cause, CVD-specific
 
