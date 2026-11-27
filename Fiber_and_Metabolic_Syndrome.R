@@ -3,51 +3,73 @@
 # Osayi Akhigbe
 
 # packages used ----
-if(!require(pacman)) install.packages("pacman")
-pacman::p_load(
+if(!require(pacman)) install.packages("pacman") # installs pacman if not yet installed
+pacman::p_load(                                 # installs the following packages if not yet installed
   nhanesA,
   survey,
   mice,
-  tidyverse
+  tidyverse,
+  here
 )
 
-# What is this project ----
+# What is this project
 # Replication of: Association of dietary fiber intake with all-cause and cardiovascular mortality in U.S. adults with metabolic syndrome: NHANES 1999–2018
 # https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1659000/full
 
-# The Data comes from The National Health and Nutrition Examination Survey (NHANES) 2017-2018
+# Creating function to download and save nhanes data frames if not already downloaded.
+data_grab <- function(object, df) {
+  if(file.exists(here(".data_sets/", paste0(object, ".rds")))) {  
+    readRDS(here(".data_sets/", paste0(object, ".rds")))  # load if data exist. 
+  } else {
+    message("Downloading ", df,"...")
+    download <- nhanes(df)                      # Download data frame
+    download |> saveRDS(here(".data_sets/", paste0(object, ".rds")))  # Save data frame to disk in hidden folder as a .rds file
+    download
+  }
+}
+
+# if data frames exist in directory .data_sets skip download
+# create hidden directory if it doesn't exist already
+dir.create(here(".data_sets"), showWarnings = FALSE)
+
+# Data used ----
+
+# The Data comes from The National Health and Nutrition Examination Survey (NHANES) 2017-2018 ################ Data from NHANES 1999-2016 will be included later
 # Index: https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017
 
-# Data used and saving to disk ----
 # *** Demographics: age, sex, race, income, sample weights ***
 # age = RIDAGEYR: (Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.)
 # sex = RIAGENDR: (male or female)
 # race = RIDRETH3: This is the race-ethnicity variable included in the demographics file since the 2011-2012 survey cycle to accommodate the oversample of Asian Americans.
 # poverty_income_ratio = INDFMPIR - Ratio of family income to poverty (Need to control for social economic factors)
 # education = DMDEDUC2 (age 20+) (What is the highest grade or level of school {you have/SP has} completed or the highest degree {you have/s/he has} received?)
-demo <- nhanes("DEMO_J")
+demo <- data_grab("demo", "DEMO_J")
 
-# *** Dietary Interview - Total Nutrient Intakes, Day 1  ***
-diet <- nhanes("DR1TOT_J") # dietary_fiber_grams = DR1TFIBE
+# Dietary Interview - Total Nutrient Intakes, Day 1
+diet <- data_grab("diet", "DR1TOT_J") # dietary_fiber (g/day) = DR1TFIBE
 
-# *** Examination Data - Blood Pressure and Body Measures ***
-bpx  <- nhanes("BPX_J")     # systolic_BP ((1st rdg) mm Hg) = BPXSY1; Diastolic ((1st rdg) mm Hg) = BPXDI1
-bmx  <- nhanes("BMX_J")     # waist_circumference (cm) = BMXWAIST
+# Examination Data - Blood Pressure and Body Measures
+bpx  <- data_grab("bpx", "BPX_J")     # systolic_BP ((1st rdg) mm Hg) = BPXSY1; Diastolic ((1st rdg) mm Hg) = BPXDI1
+bmx  <- data_grab("bmx", "BMX_J")     # waist_circumference (cm) = BMXWAIST
 
-# *** Laboratory Data - Plasma Fasting glucose, HDL and triglycerides ***
-glu  <- nhanes("GLU_J")     # glucose (mg/dL) = LBXGLU 
-hdl  <- nhanes("HDL_J")     # hdl_cholesterol (mg/dL) = LBDHDD 
-trig <- nhanes("TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not needed for MetS)
+# Laboratory Data - Plasma Fasting glucose, HDL and triglycerides
+glu  <- data_grab("glu", "GLU_J")     # glucose (mg/dL) = LBXGLU 
+hdl  <- data_grab("hdl", "HDL_J")     # hdl_cholesterol (mg/dL) = LBDHDD 
+trig <- data_grab("trig", "TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not needed for MetS)
 
-# *** Questionnaire Data - Blood Pressure & Cholesterol ***
-bpq <- nhanes("BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
+# Questionnaire Data - Blood Pressure & Cholesterol
+bpq <- data_grab("bpq", "BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
 
+
+
+# *** 
+# Mortality: all-cause, CVD-specific
 
 # rm(list = setdiff(ls(), c("demo", "diet", "bpx", "bmx", "glu", "hdl", "trig", "bpq")))
 
 
 # Data merging ----
-# Merge all data sets by SEQN
+# Merge all data sets by Sequence Number (SEQN)
 nhanesMerged <- demo |>
   full_join(diet, by = "SEQN") |>
   full_join(bpx,  by = "SEQN") |>
@@ -66,7 +88,7 @@ nhanes_simple <- nhanesMerged |>
     race = RIDRETH3,
     poverty_income_ratio = INDFMPIR,
     education = DMDEDUC2,
-    dietary_fiber_grams = DR1TFIBE,
+    dietary_fiber = DR1TFIBE,
     systolic_BP = BPXSY1,
     diastolic_BP = BPXDI1,
     waist_circumference = BMXWAIST,
@@ -116,7 +138,7 @@ mets_df <- nhanes_simple |>
          # On antihypertensive drug treatment in a patient with a history of hypertension
          hbp_check = (systolic_BP >= 130) | 
                      (diastolic_BP >= 85) | 
-                     (prescription_for_HBP == "Yes"),  # If systolic_BP and diastolic_BP are both bellow the thresh but prescription_for_HBP is NA then hbp_check is also NA
+                     (prescription_for_HBP == "Yes"),  # If systolic_BP and diastolic_BP are both below the thresh but prescription_for_HBP is NA then hbp_check is also NA
          
          # (5) Elevated fasting glucose	
          # ≥100 mg/dL
@@ -133,7 +155,6 @@ mets_df <- nhanes_simple |>
                  glu_check), 
            na.rm = TRUE)
          
-         # Porbably don't filter n_criteria. 
   ) |> filter(n_criteria >= 3 & age >= 18)  # ATP III MetS definition applies to Adults only.
 
 
