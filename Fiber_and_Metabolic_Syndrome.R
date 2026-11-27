@@ -16,6 +16,7 @@ pacman::p_load(                                 # installs the following package
 # Replication of: Association of dietary fiber intake with all-cause and cardiovascular mortality in U.S. adults with metabolic syndrome: NHANES 1999–2018
 # https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1659000/full
 
+<<<<<<< HEAD
 # Creating function to download and save nhanes data frames if not already downloaded.
 data_grab <- function(object, df) {
   if(file.exists(here(".data_sets/", paste0(object, ".rds")))) {  
@@ -31,18 +32,30 @@ data_grab <- function(object, df) {
 # if data frames exist in directory .data_sets skip download
 # create hidden directory if it doesn't exist already
 dir.create(here(".data_sets"), showWarnings = FALSE)
+=======
+
+>>>>>>> 5f41e2eef80f4f9e4e47b59c4b2b0a9554b1f11b
 
 # Data used ----
 
 # The Data comes from The National Health and Nutrition Examination Survey (NHANES) 2017-2018 ################ Data from NHANES 1999-2016 will be included later
 # Index: https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017
 
+<<<<<<< HEAD
+=======
+
+########################### if data frames exist in directory .data_sets skip download
+# create hidden directory if it doesn't exist already
+dir.create(here(".data_sets"), showWarnings = FALSE)
+
+>>>>>>> 5f41e2eef80f4f9e4e47b59c4b2b0a9554b1f11b
 # *** Demographics: age, sex, race, income, sample weights ***
 # age = RIDAGEYR: (Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.)
 # sex = RIAGENDR: (male or female)
 # race = RIDRETH3: This is the race-ethnicity variable included in the demographics file since the 2011-2012 survey cycle to accommodate the oversample of Asian Americans.
 # poverty_income_ratio = INDFMPIR - Ratio of family income to poverty (Need to control for social economic factors)
 # education = DMDEDUC2 (age 20+) (What is the highest grade or level of school {you have/SP has} completed or the highest degree {you have/s/he has} received?)
+<<<<<<< HEAD
 demo <- data_grab("demo", "DEMO_J")
 
 # Dietary Interview - Total Nutrient Intakes, Day 1
@@ -59,6 +72,29 @@ trig <- data_grab("trig", "TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not n
 
 # Questionnaire Data - Blood Pressure & Cholesterol
 bpq <- data_grab("bpq", "BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
+=======
+if(file.exists(here(".data_sets/demo.rds"))){  
+  demo <- readRDS(here(".data_sets/demo.rds"))  # if data exist, load and pass into object.
+} else {
+  demo <- nhanes("DEMO_J")                      # Download data and pass into object
+  demo |> saveRDS(here(".data_sets/demo.rds"))  # Save object to disk in hidden folder
+}                      
+
+# Dietary Interview - Total Nutrient Intakes, Day 1
+diet <- nhanes("DR1TOT_J") # dietary_fiber (g/day) = DR1TFIBE
+
+# Examination Data - Blood Pressure and Body Measures
+bpx  <- nhanes("BPX_J")     # systolic_BP ((1st rdg) mm Hg) = BPXSY1; Diastolic ((1st rdg) mm Hg) = BPXDI1
+bmx  <- nhanes("BMX_J")     # waist_circumference (cm) = BMXWAIST
+
+# Laboratory Data - Plasma Fasting glucose, HDL and triglycerides
+glu  <- nhanes("GLU_J")     # glucose (mg/dL) = LBXGLU 
+hdl  <- nhanes("HDL_J")     # hdl_cholesterol (mg/dL) = LBDHDD 
+trig <- nhanes("TRIGLY_J")  # triglycerides (mg/dL)= LBXTR (LDL not needed for MetS)
+
+# Questionnaire Data - Blood Pressure & Cholesterol
+bpq <- nhanes("BPQ_J")      # prescription_for_HBP (Yes / No) = BPQ050A
+>>>>>>> 5f41e2eef80f4f9e4e47b59c4b2b0a9554b1f11b
 
 
 
